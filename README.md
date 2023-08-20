@@ -35,7 +35,14 @@ Run Using Docker
 Quick Start
 -----------
 
-Basic configuration.  Usage examples.
+1. Start PostgreSQL DB
+
+2. Run
+
+       fish -P  # fetch fish names from web and populate DB
+       # cargo run -- -P
+       fish -g  # get random fish name from DB
+       # cargo run -- -g
 
 See [documentation](docs/index.md) for details.
 

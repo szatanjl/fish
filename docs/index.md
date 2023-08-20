@@ -5,7 +5,14 @@ Documentation
 Usage
 -----
 
-How to use it?
+    Usage: fish [OPTIONS]
+
+    Options:
+      -f, --fetch <FNAME>     Fetch fish names into file
+      -p, --populate <FNAME>  Populate DB with fish names from file
+      -P, --fetch_populate    Fetch fish names from web and populate DB
+      -g, --get               Get random fish name
+      -h, --help              Print help
 
 
 Configuration

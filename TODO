@@ -1,4 +1,4 @@
-[ ] Add `fish` binary
+[x] Add `fish` binary
 [ ] Add `fishd` binary
 [ ] Fetch fish names from web
 [ ] Populate DB with fish names (from file)

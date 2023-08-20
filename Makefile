@@ -89,15 +89,15 @@ install: install-bin install-lib install-man-bin install-man-lib
 
 install-bin: bin
 	mkdir -p $(DESTDIR)$(bindir)
-	cp -f target/release/hello $(DESTDIR)$(bindir)
-	chmod +x $(DESTDIR)$(bindir)/hello
+	cp -f target/release/fish $(DESTDIR)$(bindir)
+	chmod +x $(DESTDIR)$(bindir)/fish
 
 install-lib: lib
 	mkdir -p $(DESTDIR)$(libdir)
 
-install-man-bin: man/hello.1
+install-man-bin: man/fish.1
 	mkdir -p $(DESTDIR)$(man1dir)
-	cp -f man/hello.1 $(DESTDIR)$(man1dir)
+	cp -f man/fish.1 $(DESTDIR)$(man1dir)
 
 install-man-lib:
 	mkdir -p $(DESTDIR)$(man3dir)
@@ -106,14 +106,14 @@ uninstall: uninstall-man-lib uninstall-man-bin
 uninstall: uninstall-lib uninstall-bin
 
 uninstall-bin:
-	rm -f $(DESTDIR)$(bindir)/hello
+	rm -f $(DESTDIR)$(bindir)/fish
 	-cd $(DESTDIR) && rmdir -p .$(bindir)
 
 uninstall-lib:
 	-cd $(DESTDIR) && rmdir -p .$(libdir)
 
 uninstall-man-bin:
-	rm -f $(DESTDIR)$(man1dir)/hello.1
+	rm -f $(DESTDIR)$(man1dir)/fish.1
 	-cd $(DESTDIR) && rmdir -p .$(man1dir)
 
 uninstall-man-lib:

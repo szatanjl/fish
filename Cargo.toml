@@ -14,7 +14,12 @@ include = [
 ]
 
 [[bin]]
-name = "hello"
-path = "src/main.rs"
+name = "fish"
+path = "src/fish.rs"
+
+[lib]
+name = "fish"
 
 [dependencies]
+clap = "4.3"
+thiserror = "1.0"
