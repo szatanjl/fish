@@ -23,7 +23,7 @@ DOCKER_FLAGS = \
 	--build-arg CARGO='$(CARGO)' \
 	--build-arg CARGO_FLAGS='$(CARGO_FLAGS)' \
 	--build-arg CARGO_FETCH_FLAGS='$(CARGO_FETCH_FLAGS)'
-DOCKER_RUN_FLAGS = -it --rm --init --name $(DOCKERNAME)
+DOCKER_RUN_FLAGS = -it --rm --init -p 3000:3000 --name $(DOCKERNAME)
 DOCKER_CMD =
 
 DESTDIR =
