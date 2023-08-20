@@ -21,7 +21,12 @@ Usage
 Configuration
 -------------
 
-How to configure software?
+Configure software by setting following environment variables:
+
+    PG_USER - PostgreSQL username
+    PG_PASS - PostgreSQL password
+    PG_HOST - PostgreSQL host
+    PG_DB   - PostgreSQL database name
 
 
 Development

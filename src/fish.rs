@@ -14,7 +14,8 @@ use thiserror::Error;
 #[error("No command provided")]
 struct NoCommand;
 
-fn main() -> Result<(), Box<dyn StdError>> {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn StdError>> {
 	let args = Command::new("Fish")
 		.about("Generate random fish names")
 		.args([
@@ -30,13 +31,13 @@ fn main() -> Result<(), Box<dyn StdError>> {
 		println!("{}", name);
 	} else if args.get_flag("fetch_populate") {
 		let names = fetch()?;
-		populate(names.iter().map(String::as_str))?;
+		populate(names.iter().map(String::as_str)).await?;
 	} else if let Some(fname) = args.get_one::<String>("populate") {
 		let file = File::open(fname)?;
 		let names = BufReader::new(file)
 			.lines()
 			.collect::<Result<Vec<_>, _>>()?;
-		populate(names.iter().map(String::as_str))?;
+		populate(names.iter().map(String::as_str)).await?;
 	} else if let Some(fname) = args.get_one::<String>("fetch") {
 		let names = fetch()?;
 		write(fname, names.join("\n"))?;
