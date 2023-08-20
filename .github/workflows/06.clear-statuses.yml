@@ -1,0 +1,65 @@
+name: 06 - Clear Statuses
+run-name: Clear Statuses -- ${{ inputs.name }} ${{ inputs.begin }}..${{ inputs.end }}
+concurrency: clear-statuses
+permissions:
+  contents: read
+  statuses: write
+env:
+  REPO: https://${{ github.actor }}:${{ github.token }}@github.com/${{ github.repository }}.git
+
+
+on:
+
+  workflow_call:
+    inputs:
+      begin:
+        description: First commit hash in a sequence to clear statuses
+        type: string
+        required: true
+      end:
+        description: Last commit hash in a sequence to clear statuses
+        type: string
+        required: true
+      name:
+        description: Status name to clear
+        type: string
+        required: true
+    outputs:
+      outcome:
+        description: Workflow outcome
+        value: ${{ jobs.clear.result }}
+
+  workflow_dispatch:
+    inputs:
+      begin:
+        description: First commit hash in a sequence to clear statuses
+        type: string
+        required: true
+      end:
+        description: Last commit hash in a sequence to clear statuses
+        type: string
+        required: true
+      name:
+        description: Status name to clear
+        type: string
+        required: true
+
+
+jobs:
+  clear:
+    name: Clear Statuses
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Prepare Job
+        run: |
+          git clone -n --filter=tree:0 --progress -- "${REPO}" .
+          git sparse-checkout set --no-cone .github/actions
+          git checkout --progress
+      - name: Clear Statuses
+        id: status
+        uses: ./.github/actions/status-clear
+        with:
+          begin: ${{ inputs.begin }}
+          end: ${{ inputs.end }}
+          name: ${{ inputs.name }}

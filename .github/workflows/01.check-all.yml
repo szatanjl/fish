@@ -1,0 +1,76 @@
+name: 01 - Run Tests on All Commits
+run-name: Run Tests on All Commits -- ${{ inputs.sha || github.ref }}
+concurrency: check-all
+permissions:
+  actions: write
+  contents: read
+  statuses: write
+env:
+  REPO: https://${{ github.actor }}:${{ github.token }}@github.com/${{ github.repository }}.git
+
+
+on:
+
+  workflow_call:
+    inputs:
+      sha:
+        description: Commit hash to dispatch tests from
+        type: string
+        required: true
+    outputs:
+      outcome:
+        description: Workflow outcome
+        value: ${{ jobs.wait.outputs.outcome }}
+
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit hash to dispatch tests from
+        type: string
+
+  pull_request:
+    branches:
+      - main
+
+  push:
+    branches:
+      - main
+
+
+jobs:
+
+  dispatch:
+    name: Dispatch Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Prepare Job
+        run: |
+          git clone -n --filter=tree:0 --progress -- "${REPO}" .
+          git sparse-checkout set --no-cone .github/actions
+          git checkout --progress
+      - name: Dispatch Tests
+        uses: ./.github/actions/dispatch-check
+        with:
+          sha: ${{ inputs.sha || github.sha }}
+
+  wait:
+    name: Wait for Dispatched Tests
+    needs: dispatch
+    concurrency: check-${{ inputs.sha || github.event.inputs.sha || github.sha }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    outputs:
+      outcome: ${{ steps.status.outputs.status }}
+    steps:
+      - name: Prepare Job
+        run: |
+          git clone -n --filter=tree:0 --progress -- "${REPO}" .
+          git sparse-checkout set --no-cone .github/actions
+          git checkout --progress
+      - name: Check Outcome
+        id: status
+        uses: ./.github/actions/status-get
+        with:
+          sha: ${{ inputs.sha || github.sha }}
+          names: check check-parents

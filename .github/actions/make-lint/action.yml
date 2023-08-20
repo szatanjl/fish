@@ -1,0 +1,31 @@
+name: Run Formatters and Linters
+description: Run Formatters and Linters
+
+
+inputs:
+  sha:
+    description: Commit hash
+    default: ${{ github.sha }}
+  dir:
+    description: Directory to checkout repository to
+    default: lint
+
+
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/checkout
+      with:
+        sha: ${{ inputs.sha }}
+        dir: ${{ inputs.dir }}
+    - shell: bash
+      working-directory: ${{ inputs.dir }}
+      run: |
+        if grep -q '^fmt-check:' Makefile
+        then
+            make fmt-check
+        fi
+        if grep -q '^lint:' Makefile
+        then
+            make lint
+        fi

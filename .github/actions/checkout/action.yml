@@ -1,0 +1,26 @@
+name: Checkout Project Code
+description: Checkout Project Code
+
+
+inputs:
+  sha:
+    description: Commit hash
+    default: ${{ github.sha }}
+  dir:
+    description: Directory to checkout repository to
+    required: true
+
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: git worktree add -f "./${DIR}" "${SHA}"
+      env:
+        SHA: ${{ inputs.sha }}
+        DIR: ${{ inputs.dir }}
+    - shell: bash
+      working-directory: ${{ inputs.dir }}
+      run: |
+        git sparse-checkout disable
+        git checkout --recurse-submodules --progress

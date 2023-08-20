@@ -1,0 +1,181 @@
+name: 02 - Run Tests
+run-name: Run Tests -- ${{ inputs.sha || github.ref }}
+concurrency: check-${{ inputs.sha || github.event.inputs.sha || github.sha }}
+permissions:
+  contents: read
+  statuses: write
+env:
+  REPO: https://${{ github.actor }}:${{ github.token }}@github.com/${{ github.repository }}.git
+
+
+on:
+
+  workflow_call:
+    inputs:
+      sha:
+        description: Commit hash to test
+        type: string
+        required: true
+      force:
+        description: Force rerun
+        type: boolean
+        default: false
+    outputs:
+      outcome:
+        description: Workflow outcome
+        value: ${{ jobs.post.outputs.outcome || jobs.pre.outputs.outcome }}
+
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit hash to test
+        type: string
+        required: true
+      force:
+        description: Force rerun
+        type: boolean
+        default: false
+      _wait_for:
+        # Used by .github/actions/dispatch-check to run tests in order
+        description: DO NOT USE.  Concurrency group of tests to wait for
+        type: string
+
+
+jobs:
+
+  pre:
+    name: Check If Already Tested
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    outputs:
+      continue: ${{ steps.status.outputs.continue }}
+      outcome: ${{ steps.status.outputs.status }}
+    steps:
+      - name: Prepare Job
+        run: |
+          git clone -n --filter=tree:0 --progress -- "${REPO}" .
+          git sparse-checkout set --no-cone .github/actions
+          git checkout --progress
+      - name: Set Status Pending
+        id: status
+        uses: ./.github/actions/status-set
+        with:
+          sha: ${{ inputs.sha || github.sha }}
+          name: check
+          description: Status of all checks combined
+          force: ${{ inputs.force }}
+
+  lint:
+    name: Run Formatters and Linters
+    needs: pre
+    if: needs.pre.outputs.continue != 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      outcome: ${{ steps.check.outcome }}
+    steps:
+      - name: Prepare Job
+        run: |
+          git clone -n --filter=tree:0 --progress -- "${REPO}" .
+          git sparse-checkout set --no-cone .github/actions
+          git checkout --progress
+      - name: Set Status Pending
+        uses: ./.github/actions/status-set
+        with:
+          sha: ${{ inputs.sha || github.sha }}
+          name: lint
+          description: Status of formatters and linters
+      - name: Run Formatters and Linters
+        id: check
+        uses: ./.github/actions/make-lint
+        with:
+          sha: ${{ inputs.sha || github.sha }}
+      - name: Set Status Done
+        if: always()
+        uses: ./.github/actions/status-set
+        with:
+          sha: ${{ inputs.sha || github.sha }}
+          name: lint
+          description: Status of formatters and linters
+          values: ${{ steps.check.outcome }}
+
+  test:
+    name: Run Tests
+    needs: pre
+    if: needs.pre.outputs.continue != 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      outcome: ${{ steps.check.outcome }}
+    steps:
+      - name: Prepare Job
+        run: |
+          git clone -n --filter=tree:0 --progress -- "${REPO}" .
+          git sparse-checkout set --no-cone .github/actions
+          git checkout --progress
+      - name: Set Status Pending
+        uses: ./.github/actions/status-set
+        with:
+          sha: ${{ inputs.sha || github.sha }}
+          name: test
+          description: Status of tests
+      - name: Run Tests
+        id: check
+        uses: ./.github/actions/make-test
+        with:
+          sha: ${{ inputs.sha || github.sha }}
+      - name: Set Status Done
+        if: always()
+        uses: ./.github/actions/status-set
+        with:
+          sha: ${{ inputs.sha || github.sha }}
+          name: test
+          description: Status of tests
+          values: ${{ steps.check.outcome }}
+
+  post:
+    name: Mark as Tested
+    needs:
+      - pre
+      - lint
+      - test
+    if: always() && needs.pre.outputs.continue != 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    outputs:
+      outcome: ${{ steps.status.outputs.status }}
+    steps:
+      - name: Prepare Job
+        run: |
+          git clone -n --filter=tree:0 --progress -- "${REPO}" .
+          git sparse-checkout set --no-cone .github/actions
+          git checkout --progress
+      - name: Set Status Done
+        id: status
+        uses: ./.github/actions/status-set
+        with:
+          sha: ${{ inputs.sha || github.sha }}
+          name: check
+          description: Status of all checks combined
+          values: >
+            ${{ needs.lint.result }} ${{ needs.lint.outputs.outcome }}
+            ${{ needs.test.result }} ${{ needs.test.outputs.outcome }}
+
+  parents:
+    name: Check Parent Commits Test Results
+    concurrency: check-${{ inputs._wait_for || github.event.inputs._wait_for }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Prepare Job
+        run: |
+          git clone -n --filter=tree:0 --progress -- "${REPO}" .
+          git sparse-checkout set --no-cone .github/actions
+          git checkout --progress
+      - name: Check Parent Commits Test Results
+        uses: ./.github/actions/status-inherit
+        with:
+          sha: ${{ inputs.sha || github.sha }}
+          name: check-parents
+          description: Status of all parent commits checks combined
+          names_parents: check check-parents

@@ -1,0 +1,25 @@
+name: Get Commit Hash from Ref
+description: Get Commit Hash from Ref
+
+
+inputs:
+  ref:
+    description: Commit ref
+    default: ${{ github.sha }}
+outputs:
+  sha:
+    description: Commit hash of ref
+    value: ${{ steps.sha.outputs.sha }}
+
+
+runs:
+  using: composite
+  steps:
+    - id: sha
+      shell: bash
+      run: |
+        sha=$(git rev-list -n 1 "${REF}" --)
+        printf '\nsha=%s\n' "${sha}" >&2
+        printf 'sha=%s\n' "${sha}" >> "${GITHUB_OUTPUT}"
+      env:
+        REF: ${{ inputs.ref }}

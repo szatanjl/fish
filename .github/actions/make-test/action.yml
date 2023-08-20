@@ -1,0 +1,27 @@
+name: Run Tests
+description: Run Tests
+
+
+inputs:
+  sha:
+    description: Commit hash
+    default: ${{ github.sha }}
+  dir:
+    description: Directory to checkout repository to
+    default: test
+
+
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/checkout
+      with:
+        sha: ${{ inputs.sha }}
+        dir: ${{ inputs.dir }}
+    - shell: bash
+      working-directory: ${{ inputs.dir }}
+      run: |
+        if grep -q '^test:' Makefile
+        then
+            make test
+        fi

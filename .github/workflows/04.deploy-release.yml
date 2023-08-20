@@ -1,0 +1,79 @@
+name: 04 - Deploy Release
+run-name: Deploy Release -- ${{ inputs.env }} ${{ inputs.tag || github.ref }}
+concurrency: deploy-${{ inputs.env || github.event.inputs.env }}
+permissions:
+  actions: write
+  contents: write
+  packages: write
+  statuses: write
+env:
+  REPO: https://${{ github.actor }}:${{ github.token }}@github.com/${{ github.repository }}.git
+
+
+on:
+
+  workflow_call:
+    inputs:
+      tag:
+        description: Tag to deploy
+        type: string
+        required: true
+      env:
+        description: Environment to deploy to
+        type: string
+        required: true
+      skip_check:
+        description: Skip tests
+        type: boolean
+        default: false
+    outputs:
+      outcome:
+        description: Workflow outcome
+        value: ${{ jobs.deploy.outputs.outcome }}
+
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag to deploy
+        type: string
+        required: true
+      env:
+        description: Environment to deploy to
+        type: string
+        required: true
+      skip_check:
+        description: Skip tests
+        type: boolean
+        default: false
+
+
+jobs:
+
+  release:
+    name: Release Project
+    uses: ./.github/workflows/03.release.yml
+    with:
+      tag: ${{ inputs.tag || github.ref_name }}
+      skip_check: ${{ inputs.skip_check }}
+
+  deploy:
+    name: Deploy
+    needs: release
+    if: needs.release.outputs.outcome == 'success'
+    environment: ${{ inputs.env }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      outcome: ${{ steps.deploy.outcome }}
+    steps:
+      - name: Prepare Job
+        run: |
+          git clone -n --filter=tree:0 --progress -- "${REPO}" .
+          git sparse-checkout set --no-cone .github/actions
+          git checkout --progress
+      - name: Deploy
+        id: deploy
+        uses: ./.github/actions/deploy
+        with:
+          ref: ${{ inputs.tag || github.sha }}
+          env: ${{ inputs.env }}

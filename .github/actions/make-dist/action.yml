@@ -1,0 +1,31 @@
+name: Build Distribution Tarballs
+description: Build Distribution Tarballs
+
+
+inputs:
+  sha:
+    description: Commit hash
+    default: ${{ github.sha }}
+  name:
+    description: Package name
+    default: ${{ github.event.repository.name }}
+  tag:
+    description: Package version tag
+    default: ${{ github.ref_name }}
+
+
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/make-version
+      with:
+        sha: ${{ inputs.sha }}
+        dir: ${{ inputs.name }}-${{ inputs.tag }}
+    - shell: bash
+      run: |
+        tar -cf "./${NAME}.tar" "./${NAME}"
+        gzip -9k "./${NAME}.tar"
+        zstd -19k "./${NAME}.tar"
+        zip -9r "./${NAME}.zip" "./${NAME}"
+      env:
+        NAME: ${{ inputs.name }}-${{ inputs.tag }}

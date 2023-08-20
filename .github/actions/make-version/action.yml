@@ -1,0 +1,26 @@
+name: Generate Version Information
+description: Generate Version Information
+
+
+inputs:
+  sha:
+    description: Commit hash
+    default: ${{ github.sha }}
+  dir:
+    description: Directory to checkout repository to
+    default: version
+
+
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/checkout
+      with:
+        sha: ${{ inputs.sha }}
+        dir: ${{ inputs.dir }}
+    - shell: bash
+      working-directory: ${{ inputs.dir }}
+      run: |
+        make version
+        rm -Rf .git
+        sed '/^$/q; s/^/\t/' version.mk

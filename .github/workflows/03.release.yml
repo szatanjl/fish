@@ -1,0 +1,261 @@
+name: 03 - Release Project
+run-name: Release Project -- ${{ inputs.tag || github.ref }}
+concurrency: release-${{ inputs.tag || github.event.inputs.tag || github.ref_name }}
+permissions:
+  actions: write
+  contents: write
+  packages: write
+  statuses: write
+env:
+  REPO: https://${{ github.actor }}:${{ github.token }}@github.com/${{ github.repository }}.git
+
+
+on:
+
+  workflow_call:
+    inputs:
+      tag:
+        description: Release tag
+        type: string
+        required: true
+      force:
+        description: Force rerun
+        type: boolean
+        default: false
+      skip_check:
+        description: Skip tests
+        type: boolean
+        default: false
+    outputs:
+      outcome:
+        description: Workflow outcome
+        value: ${{ jobs.post.outputs.outcome || jobs.pre.outputs.outcome }}
+
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag
+        type: string
+        required: true
+      force:
+        description: Force rerun
+        type: boolean
+        default: false
+      skip_check:
+        description: Skip tests
+        type: boolean
+        default: false
+
+  push:
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
+      - v[0-9]+.[0-9]+.[0-9]+-[0-9a-z]+
+
+
+jobs:
+
+  pre:
+    name: Prepare Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      sha: ${{ steps.sha.outputs.sha }}
+      continue: ${{ steps.status.outputs.continue }}
+      outcome: ${{ steps.status.outputs.status }}
+      release: ${{ steps.release.outcome }}
+    steps:
+      - name: Prepare Job
+        run: |
+          git clone -n --filter=tree:0 --progress -- "${REPO}" .
+          git sparse-checkout set --no-cone .github/actions
+          git checkout --progress
+      - name: Get Hash from Tag
+        id: sha
+        uses: ./.github/actions/get-hash
+        with:
+          ref: ${{ inputs.tag || github.ref_name }}
+      - name: Set Status Pending
+        id: status
+        uses: ./.github/actions/status-set
+        with:
+          sha: ${{ steps.sha.outputs.sha }}
+          name: release
+          description: Status of release progress
+          force: ${{ inputs.force }}
+      - name: Create New Release
+        id: release
+        if: steps.status.outputs.continue != 'false'
+        uses: ./.github/actions/release-create
+        with:
+          tag: ${{ inputs.tag || github.ref_name }}
+
+  check:
+    name: Run Tests
+    needs: pre
+    if: needs.pre.outputs.continue != 'false' && inputs.skip_check == false
+    uses: ./.github/workflows/01.check-all.yml
+    with:
+      sha: ${{ needs.pre.outputs.sha }}
+
+  src:
+    name: Release Source Tarballs
+    needs:
+      - pre
+      - check
+    if: needs.pre.outputs.continue != 'false' &&
+        ((success() && needs.check.outputs.outcome == 'success') ||
+         (inputs.skip_check && needs.pre.result == 'success'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Prepare Job
+        run: |
+          git clone -n --filter=tree:0 --progress -- "${REPO}" .
+          git sparse-checkout set --no-cone .github/actions
+          git checkout --progress
+      - name: Set Status Pending
+        uses: ./.github/actions/status-set
+        with:
+          sha: ${{ needs.pre.outputs.sha }}
+          name: src
+          description: Status of source release
+      - name: Build Source Tarballs
+        uses: ./.github/actions/make-dist
+        with:
+          tag: ${{ inputs.tag || github.ref_name }}
+      - name: Upload Source Tarballs
+        id: upload
+        uses: ./.github/actions/release-files
+        with:
+          tag: ${{ inputs.tag || github.ref_name }}
+          files: ./*.tar.* ./*.zip
+      - name: Set Status Done
+        if: always()
+        uses: ./.github/actions/status-set
+        with:
+          sha: ${{ needs.pre.outputs.sha }}
+          name: src
+          description: Status of source release
+          values: ${{ steps.upload.outcome }}
+
+  bin:
+    name: Release Binary Packages
+    needs:
+      - pre
+      - check
+    if: needs.pre.outputs.continue != 'false' &&
+        ((success() && needs.check.outputs.outcome == 'success') ||
+         (inputs.skip_check && needs.pre.result == 'success'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Prepare Job
+        run: |
+          git clone -n --filter=tree:0 --progress -- "${REPO}" .
+          git sparse-checkout set --no-cone .github/actions
+          git checkout --progress
+      - name: Set Status Pending
+        uses: ./.github/actions/status-set
+        with:
+          sha: ${{ needs.pre.outputs.sha }}
+          name: bin
+          description: Status of binary release
+      - name: Build Binary Packages
+        run: echo TODO
+      - name: Upload Binary Packages
+        id: upload
+        uses: ./.github/actions/release-files
+        with:
+          tag: ${{ inputs.tag || github.ref_name }}
+          files:
+      - name: Set Status Done
+        if: always()
+        uses: ./.github/actions/status-set
+        with:
+          sha: ${{ needs.pre.outputs.sha }}
+          name: bin
+          description: Status of binary release
+          values: ${{ steps.upload.outcome }}
+
+  docker:
+    name: Release Docker Image
+    needs:
+      - pre
+      - check
+      - src
+      - bin
+    if: needs.pre.outputs.continue != 'false' &&
+        ((success() && needs.check.outputs.outcome == 'success') ||
+         (inputs.skip_check && needs.pre.result == 'success')) &&
+        needs.src.result == 'success' &&
+        needs.bin.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Prepare Job
+        run: |
+          git clone -n --filter=tree:0 --progress -- "${REPO}" .
+          git sparse-checkout set --no-cone .github/actions
+          git checkout --progress
+      - name: Set Status Pending
+        uses: ./.github/actions/status-set
+        with:
+          sha: ${{ needs.pre.outputs.sha }}
+          name: docker
+          description: Status of docker image release
+      - name: Build Docker Image
+        uses: ./.github/actions/make-docker
+        with:
+          tag: ${{ inputs.tag || github.ref_name }}
+      - name: Upload Docker Image
+        id: upload
+        uses: ./.github/actions/release-docker
+        with:
+          tag: ${{ inputs.tag || github.ref_name }}
+      - name: Set Status Done
+        if: always()
+        uses: ./.github/actions/status-set
+        with:
+          sha: ${{ needs.pre.outputs.sha }}
+          name: docker
+          description: Status of docker image release
+          values: ${{ steps.upload.outcome }}
+
+  post:
+    name: Finalize Release
+    needs:
+      - pre
+      - src
+      - bin
+      - docker
+    if: always() && needs.pre.outputs.continue != 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    outputs:
+      outcome: ${{ steps.status.outputs.status }}
+    steps:
+      - name: Prepare Job
+        run: |
+          git clone -n --filter=tree:0 --progress -- "${REPO}" .
+          git sparse-checkout set --no-cone .github/actions
+          git checkout --progress
+      - name: Delete Release on Error
+        if: needs.pre.outputs.release == 'success' &&
+            (needs.src.result != 'success' ||
+             needs.bin.result != 'success' ||
+             needs.docker.result != 'success')
+        uses: ./.github/actions/release-delete
+        with:
+          tag: ${{ inputs.tag || github.ref_name }}
+      - name: Set Status
+        id: status
+        if: always()
+        uses: ./.github/actions/status-set
+        with:
+          sha: ${{ needs.pre.outputs.sha }}
+          name: release
+          description: Status of release progress
+          values: >
+            ${{ needs.src.result }}
+            ${{ needs.bin.result }}
+            ${{ needs.docker.result }}

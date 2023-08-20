@@ -1,0 +1,27 @@
+name: Release Files
+description: Release Files
+
+
+inputs:
+  tag:
+    description: Release tag
+    default: ${{ github.ref_name }}
+  files:
+    description: Files to upload
+    required: true
+
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        if [ -n "${FILES}" ]
+        then
+            gh release upload -R "${REPO}" --clobber "${TAG}" -- ${FILES}
+        fi
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        TAG: ${{ inputs.tag }}
+        FILES: ${{ inputs.files }}

@@ -1,0 +1,19 @@
+name: Delete Release
+description: Delete Release
+
+
+inputs:
+  tag:
+    description: Release tag
+    default: ${{ github.ref_name }}
+
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: gh release delete -R "${REPO}" "${TAG}"
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        TAG: ${{ inputs.tag }}

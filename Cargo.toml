@@ -1,0 +1,20 @@
+[package]
+name = "fish"
+version = "0.0.0"
+description = "Generate Random Fish Names"
+license = "MIT"
+publish = false
+edition = "2021"
+rust-version = "1.56"
+include = [
+	"*",
+	"!/target/**",
+	"!/config.mk",
+	"!/.git/**",
+]
+
+[[bin]]
+name = "hello"
+path = "src/main.rs"
+
+[dependencies]

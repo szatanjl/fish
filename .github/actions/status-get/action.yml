@@ -1,0 +1,33 @@
+name: Get Status
+description: Get Status
+
+
+inputs:
+  sha:
+    description: Commit hash
+    required: true
+  names:
+    description: Status names to combine into single state
+    required: true
+outputs:
+  status:
+    description: Status value
+    value: ${{ steps.status.outputs.status }}
+  continue:
+    description: Is status done?
+    value: ${{ steps.status.outputs.continue }}
+
+
+runs:
+  using: composite
+  steps:
+    - id: status
+      shell: bash
+      run: |
+        "${SCRIPTS}/main.sh" ${NAMES} >> "${GITHUB_OUTPUT}"
+      env:
+        SCRIPTS: ${{ github.action_path }}
+        GH_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        SHA: ${{ inputs.sha }}
+        NAMES: ${{ inputs.names }}

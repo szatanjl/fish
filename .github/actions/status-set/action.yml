@@ -1,0 +1,47 @@
+name: Set Status
+description: Set Status
+
+
+inputs:
+  sha:
+    description: Commit hash
+    required: true
+  name:
+    description: Status name
+    required: true
+  description:
+    description: Status description
+    required: true
+  values:
+    description: |
+      Status values to combine into single state.
+      Empty means "pending"
+  force:
+    description: Set status if already exists
+    default: true
+outputs:
+  status:
+    description: Status value
+    value: ${{ steps.status.outputs.status }}
+  continue:
+    description: Is status done?
+    value: ${{ steps.status.outputs.continue }}
+
+
+runs:
+  using: composite
+  steps:
+    - id: status
+      shell: bash
+      run: |
+        "${SCRIPTS}/main.sh" ${VALUES} >> "${GITHUB_OUTPUT}"
+      env:
+        SCRIPTS: ${{ github.action_path }}
+        GH_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        SHA: ${{ inputs.sha }}
+        NAME: ${{ inputs.name }}
+        DESCRIPTION: ${{ inputs.description }}
+        VALUES: ${{ inputs.values }}
+        FORCE: ${{ inputs.force }}

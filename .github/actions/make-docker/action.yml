@@ -1,0 +1,31 @@
+name: Build Docker Image
+description: Build Docker Image
+
+
+inputs:
+  sha:
+    description: Commit hash
+    default: ${{ github.sha }}
+  dir:
+    description: Directory to checkout repository to
+    default: docker
+  name:
+    description: Docker image name
+    default: ${{ github.event.repository.name }}
+  tag:
+    description: Docker image tag
+    default: ${{ github.ref_name }}
+
+
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/make-version
+      with:
+        sha: ${{ inputs.sha }}
+        dir: ${{ inputs.dir }}
+    - shell: bash
+      working-directory: ${{ inputs.dir }}
+      run: docker build -t "${NAME}" .
+      env:
+        NAME: ${{ inputs.name }}:${{ inputs.tag }}

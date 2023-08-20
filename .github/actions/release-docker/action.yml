@@ -1,0 +1,30 @@
+name: Push Docker Image to Registry
+description: Push Docker Image to Registry
+
+
+inputs:
+  registry:
+    description: Docker registry to push to
+    default: ghcr.io/${{ github.repository_owner }}
+  name:
+    description: Docker image name
+    default: ${{ github.event.repository.name }}
+  tag:
+    description: Docker image tag
+    default: ${{ github.ref_name }}
+
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        printf '%s\n' "${PASS}" |
+        docker login -u "${USER}" --password-stdin ghcr.io
+        docker tag "${NAME}" "${REGISTRY}/${NAME}"
+        docker push "${REGISTRY}/${NAME}"
+      env:
+        REGISTRY: ${{ inputs.registry }}
+        USER: ${{ github.actor }}
+        PASS: ${{ github.token }}
+        NAME: ${{ inputs.name }}:${{ inputs.tag }}

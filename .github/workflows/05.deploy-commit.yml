@@ -1,0 +1,79 @@
+name: 05 - Deploy Commit
+run-name: Deploy Commit -- ${{ inputs.env }} ${{ inputs.sha || github.ref }}
+concurrency: deploy-${{ inputs.env || github.event.inputs.env }}
+permissions:
+  actions: write
+  contents: read
+  statuses: write
+env:
+  REPO: https://${{ github.actor }}:${{ github.token }}@github.com/${{ github.repository }}.git
+
+
+on:
+
+  workflow_call:
+    inputs:
+      sha:
+        description: Commit hash to deploy
+        type: string
+        required: true
+      env:
+        description: Environment to deploy to
+        type: string
+        required: true
+      skip_check:
+        description: Skip tests
+        type: boolean
+        default: false
+    outputs:
+      outcome:
+        description: Workflow outcome
+        value: ${{ jobs.deploy.outputs.outcome }}
+
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit hash to deploy
+        type: string
+        required: true
+      env:
+        description: Environment to deploy to
+        type: string
+        required: true
+      skip_check:
+        description: Skip tests
+        type: boolean
+        default: false
+
+
+jobs:
+
+  check:
+    name: Run Tests
+    if: inputs.skip_check == false
+    uses: ./.github/workflows/01.check-all.yml
+    with:
+      sha: ${{ inputs.sha || github.sha }}
+
+  deploy:
+    name: Deploy
+    needs: check
+    if: (success() && needs.check.outputs.outcome == 'success') ||
+        inputs.skip_check
+    environment: ${{ inputs.env }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      outcome: ${{ steps.deploy.outcome }}
+    steps:
+      - name: Prepare Job
+        run: |
+          git clone -n --filter=tree:0 --progress -- "${REPO}" .
+          git sparse-checkout set --no-cone .github/actions
+          git checkout --progress
+      - name: Deploy
+        id: deploy
+        uses: ./.github/actions/deploy
+        with:
+          ref: ${{ inputs.sha || github.sha }}
+          env: ${{ inputs.env }}

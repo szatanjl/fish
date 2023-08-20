@@ -1,0 +1,20 @@
+# Ignore built files
+/target
+
+# Ignore package manager (cargo) files
+/Cargo.lock
+
+# Ignore documentation
+/docs
+/README.md
+
+# Ignore git files
+/.git
+/.gitignore
+
+# Ignore CI/CD files
+/.github/actions
+/.github/workflows
+
+# Ignore repository configuration
+/.github

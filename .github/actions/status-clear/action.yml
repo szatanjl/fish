@@ -1,0 +1,29 @@
+name: Clear Statuses
+description: Clear Statuses
+
+
+inputs:
+  begin:
+    description: First commit hash in a sequence to clear statuses
+    required: true
+  end:
+    description: Last commit hash in a sequence to clear statuses
+    required: true
+  name:
+    description: Status name
+    required: true
+
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        "${SCRIPTS}/main.sh"
+      env:
+        SCRIPTS: ${{ github.action_path }}
+        GH_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        BEGIN: ${{ inputs.begin }}
+        END: ${{ inputs.end }}
+        NAME: ${{ inputs.name }}

@@ -1,0 +1,42 @@
+name: Set Combined Status from Parent Commits Statuses
+description: Set Combined Status from Parent Commits Statuses
+
+
+inputs:
+  sha:
+    description: Commit hash
+    required: true
+  name:
+    description: Status name
+    required: true
+  description:
+    description: Status description
+    required: true
+  names_parents:
+    description: Parent statuses names to combine into single state
+    required: true
+outputs:
+  status:
+    description: Status value
+    value: ${{ steps.status.outputs.status }}
+  continue:
+    description: Is status done?
+    value: ${{ steps.status.outputs.continue }}
+
+
+runs:
+  using: composite
+  steps:
+    - id: status
+      shell: bash
+      run: |
+        "${SCRIPTS}/main.sh" ${NAMES_PARENTS} >> "${GITHUB_OUTPUT}"
+      env:
+        SCRIPTS: ${{ github.action_path }}
+        GH_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        SHA: ${{ inputs.sha }}
+        NAME: ${{ inputs.name }}
+        DESCRIPTION: ${{ inputs.description }}
+        NAMES_PARENTS: ${{ inputs.names_parents }}

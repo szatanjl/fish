@@ -1,0 +1,21 @@
+name: Dispatch Check Workflow for Parent Commits
+description: Dispatch Check Workflow for Parent Commits
+
+
+inputs:
+  sha:
+    description: Commit hash
+    default: ${{ github.sha }}
+
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        "${SCRIPTS}/main.sh"
+      env:
+        SCRIPTS: ${{ github.action_path }}
+        GH_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        SHA: ${{ inputs.sha }}
