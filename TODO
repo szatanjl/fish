@@ -1,0 +1,10 @@
+[ ] Add `fish` binary
+[ ] Add `fishd` binary
+[ ] Fetch fish names from web
+[ ] Populate DB with fish names (from file)
+[ ] Populate DB with fish names (from web)
+[ ] Generate random fish names from DB
+[ ] Write tests
+[ ] CI/CD
+	[ ] tests
+	[ ] deploy
