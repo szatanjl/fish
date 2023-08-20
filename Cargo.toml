@@ -17,9 +17,16 @@ include = [
 name = "fish"
 path = "src/fish.rs"
 
+[[bin]]
+name = "fishd"
+path = "src/fishd.rs"
+
 [lib]
 name = "fish"
 
 [dependencies]
+axum = "0.6"
 clap = "4.3"
+serde = { version = "1.0", features = ["derive"] }
 thiserror = "1.0"
+tokio = { version = "1.32", features = ["macros", "rt-multi-thread"] }

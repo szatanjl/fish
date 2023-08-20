@@ -40,9 +40,9 @@ Quick Start
 2. Run
 
        fish -P  # fetch fish names from web and populate DB
-       # cargo run -- -P
-       fish -g  # get random fish name from DB
-       # cargo run -- -g
+       # cargo run --bin fish -- -P
+       fishd  # run HTTP service to get random fish names from DB
+       # cargo run --bin fishd
 
 See [documentation](docs/index.md) for details.
 
@@ -69,7 +69,8 @@ Development
 
 5. Build and run project
 
-       cargo run
+       cargo run --bin fish -- -P
+       cargo run --bin fishd
 
 See [documentation](docs/index.md#development) for details.
 

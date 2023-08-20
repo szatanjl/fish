@@ -15,6 +15,9 @@ Usage
       -h, --help              Print help
 
 
+    Usage: fishd
+
+
 Configuration
 -------------
 

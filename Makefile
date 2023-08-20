@@ -56,7 +56,7 @@ all:
 .PHONY: uninstall uninstall-bin uninstall-lib
 .PHONY: uninstall-man-bin uninstall-man-lib
 .PHONY: check test lint fmt fmt-check
-.PHONY: run
+.PHONY: run serve
 .PHONY: docker docker-run
 .PHONY: clean distclean cleanall
 
@@ -89,15 +89,15 @@ install: install-bin install-lib install-man-bin install-man-lib
 
 install-bin: bin
 	mkdir -p $(DESTDIR)$(bindir)
-	cp -f target/release/fish $(DESTDIR)$(bindir)
-	chmod +x $(DESTDIR)$(bindir)/fish
+	cp -f target/release/fish target/release/fishd $(DESTDIR)$(bindir)
+	chmod +x $(DESTDIR)$(bindir)/fish $(DESTDIR)$(bindir)/fishd
 
 install-lib: lib
 	mkdir -p $(DESTDIR)$(libdir)
 
-install-man-bin: man/fish.1
+install-man-bin: man/fish.1 man/fishd.1
 	mkdir -p $(DESTDIR)$(man1dir)
-	cp -f man/fish.1 $(DESTDIR)$(man1dir)
+	cp -f man/fish.1 man/fishd.1 $(DESTDIR)$(man1dir)
 
 install-man-lib:
 	mkdir -p $(DESTDIR)$(man3dir)
@@ -106,14 +106,14 @@ uninstall: uninstall-man-lib uninstall-man-bin
 uninstall: uninstall-lib uninstall-bin
 
 uninstall-bin:
-	rm -f $(DESTDIR)$(bindir)/fish
+	rm -f $(DESTDIR)$(bindir)/fish $(DESTDIR)$(bindir)/fishd
 	-cd $(DESTDIR) && rmdir -p .$(bindir)
 
 uninstall-lib:
 	-cd $(DESTDIR) && rmdir -p .$(libdir)
 
 uninstall-man-bin:
-	rm -f $(DESTDIR)$(man1dir)/fish.1
+	rm -f $(DESTDIR)$(man1dir)/fish.1 $(DESTDIR)$(man1dir)/fishd.1
 	-cd $(DESTDIR) && rmdir -p .$(man1dir)
 
 uninstall-man-lib:
@@ -137,7 +137,10 @@ fmt-check: make/fmt-check.sh
 	./$<
 
 run:
-	$(CARGO) run $(CARGO_RUN_FLAGS) -- $(CARGO_RUN_ARGS)
+	$(CARGO) run --bin fish $(CARGO_RUN_FLAGS) -- $(CARGO_RUN_ARGS)
+
+serve:
+	$(CARGO) run --bin fishd $(CARGO_RUN_FLAGS) -- $(CARGO_RUN_ARGS)
 
 docker:
 	$(DOCKER) build $(DOCKER_FLAGS) -t $(DOCKERNAME) .

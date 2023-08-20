@@ -97,6 +97,10 @@ Targets
 
   Build and run project
 
+- `make serve`
+
+  Build and run HTTP service
+
 - `make docker`
 
   Build docker image
