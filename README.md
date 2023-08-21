@@ -35,7 +35,7 @@ Run Using Docker
 Quick Start
 -----------
 
-1. Start PostgreSQL DB
+1. Start PostgreSQL DB and create `fish` database
 
 2. Run
 
