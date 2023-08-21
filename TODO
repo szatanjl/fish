@@ -1,8 +1,8 @@
 [x] Add `fish` binary
 [x] Add `fishd` binary
-[ ] Fetch fish names from web
+[x] Fetch fish names from web
 [x] Populate DB with fish names (from file)
-[ ] Populate DB with fish names (from web)
+[x] Populate DB with fish names (from web)
 [x] Generate random fish names from DB
 [ ] Write tests
 [ ] CI/CD

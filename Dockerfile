@@ -4,18 +4,19 @@ ARG CARGO_FETCH_FLAGS=
 
 ARG BASEIMG=rust:alpine
 ARG BUILDIMG=$BASEIMG
-ARG RUNIMG=scratch
+ARG RUNIMG=$BASEIMG
 
 
 FROM $BUILDIMG AS build
 WORKDIR /app
-RUN apk add --no-cache musl-dev
+RUN apk add --no-cache musl-dev openssl-dev
 COPY Cargo.toml Cargo.loc[k] .
 RUN mkdir src && echo '' > src/lib.rs && \
     echo 'fn main(){}' > src/fish.rs && \
     echo 'fn main(){}' > src/fishd.rs
 ARG CARGO
 ARG CARGO_FETCH_FLAGS
+ENV RUSTFLAGS="-C target-feature=-crt-static"
 RUN ${CARGO} fetch ${CARGO_FETCH_FLAGS}
 ARG CARGO_FLAGS
 RUN ${CARGO} build -r ${CARGO_FLAGS}

@@ -30,7 +30,7 @@ async fn main() -> Result<(), Box<dyn StdError>> {
 		let name = get().await?;
 		println!("{}", name);
 	} else if args.get_flag("fetch_populate") {
-		let names = fetch()?;
+		let names = fetch().await?;
 		populate(names.iter().map(String::as_str)).await?;
 	} else if let Some(fname) = args.get_one::<String>("populate") {
 		let file = File::open(fname)?;
@@ -39,7 +39,7 @@ async fn main() -> Result<(), Box<dyn StdError>> {
 			.collect::<Result<Vec<_>, _>>()?;
 		populate(names.iter().map(String::as_str)).await?;
 	} else if let Some(fname) = args.get_one::<String>("fetch") {
-		let names = fetch()?;
+		let names = fetch().await?;
 		write(fname, names.join("\n"))?;
 	} else {
 		Err(NoCommand)?;
