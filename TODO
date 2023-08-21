@@ -3,7 +3,7 @@
 [ ] Fetch fish names from web
 [x] Populate DB with fish names (from file)
 [ ] Populate DB with fish names (from web)
-[ ] Generate random fish names from DB
+[x] Generate random fish names from DB
 [ ] Write tests
 [ ] CI/CD
 	[ ] tests

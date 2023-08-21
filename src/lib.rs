@@ -2,7 +2,7 @@
 
 use std::env::var;
 
-use sqlx::{query, Connection, Error, PgConnection, QueryBuilder};
+use sqlx::{query, Connection, Error, PgConnection, QueryBuilder, Row};
 
 pub fn fetch() -> Result<Vec<String>, Error> {
 	todo!()
@@ -32,8 +32,16 @@ pub async fn populate<'a>(
 	Ok(())
 }
 
-pub fn get() -> Result<String, Error> {
-	todo!()
+pub async fn get() -> Result<String, Error> {
+	let mut conn = connect().await?;
+
+	let row = query("UPDATE fish SET used=true WHERE name=(
+		SELECT name FROM fish WHERE used=false ORDER BY random() LIMIT 1
+	) RETURNING name")
+	.fetch_one(&mut conn)
+	.await?;
+
+	row.try_get(0)
 }
 
 async fn connect() -> Result<PgConnection, Error> {

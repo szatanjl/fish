@@ -27,7 +27,7 @@ async fn main() -> Result<(), Box<dyn StdError>> {
 		.get_matches();
 
 	if args.get_flag("get") {
-		let name = get()?;
+		let name = get().await?;
 		println!("{}", name);
 	} else if args.get_flag("fetch_populate") {
 		let names = fetch()?;

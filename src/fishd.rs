@@ -24,7 +24,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 #[allow(clippy::unused_async)]
 async fn get_fish() -> impl IntoResponse {
-	match get_fish_name() {
+	match get_fish_name().await {
 		Ok(name) => Json(Fish { name }).into_response(),
 		Err(_) => StatusCode::INTERNAL_SERVER_ERROR
 			.into_response(),
