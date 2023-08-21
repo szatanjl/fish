@@ -4,7 +4,7 @@
 [x] Populate DB with fish names (from file)
 [x] Populate DB with fish names (from web)
 [x] Generate random fish names from DB
-[ ] Write tests
-[ ] CI/CD
-	[ ] tests
+[x] Write tests
+[x] CI/CD
+	[x] tests
 	[ ] deploy
