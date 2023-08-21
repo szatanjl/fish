@@ -1,7 +1,7 @@
 repository:
   name: fish
   description: Generate Random Fish Names
-  homepage: https://fish.lszj.org
+  homepage:
   topics:
   default_branch: main
   private: false
