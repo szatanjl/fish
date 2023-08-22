@@ -35,14 +35,8 @@ Run Using Docker
 Quick Start
 -----------
 
-1. Start PostgreSQL DB and create `fish` database
-
-2. Run
-
-       fish -P  # fetch fish names from web and populate DB
-       # cargo run --bin fish -- -P
-       fishd  # run HTTP service to get random fish names from DB
-       # cargo run --bin fishd
+1. Install docker and docker-compose
+2. Run `docker compose up`
 
 See [documentation](docs/index.md) for details.
 
