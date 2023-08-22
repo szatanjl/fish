@@ -15,12 +15,12 @@ Build and Install from Source
 2. Download and extract source code
 
        # packages available also in .tar.zst and .zip formats
-       curl -O https://github.com/szatanjl/fish/download/fish.tar.gz
-       tar -xzf fish.tar.gz
+       curl -LO https://github.com/szatanjl/fish/releases/download/v0.1.0/fish-v0.1.0.tar.gz
+       tar -xzf fish-v0.1.0.tar.gz
 
 3. Build and install
 
-       cd fish
+       cd fish-v0.1.0
        make CARGO_FLAGS=-r
        make install
 
@@ -28,8 +28,9 @@ Build and Install from Source
 Run Using Docker
 ----------------
 
-    docker pull ghcr.io/szatanjl/fish
-    docker run -it --rm ghcr.io/szatanjl/fish
+    docker pull ghcr.io/szatanjl/fish:v0.1.0
+    docker run -it --rm ghcr.io/szatanjl/fish:v0.1.0 /app/fish -P
+    docker run -it --rm -p 3000:3000 ghcr.io/szatanjl/fish:v0.1.0
 
 
 Quick Start
