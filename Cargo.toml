@@ -1,6 +1,6 @@
 [package]
 name = "fish"
-version = "0.0.0"
+version = "0.1.0"
 description = "Generate Random Fish Names"
 license = "MIT"
 publish = false
